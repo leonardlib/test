@@ -116,6 +116,9 @@ function evluateMessage(recipientId, message) {
         type = 'image';
     } else if (contains(message, 'clima')) {
         responseMessageText = 'Ok. Can you send me your location?, please :)'
+    } else if (contains(message, 'info')) {
+        responseMessageText = '';
+        type = 'template';
     } else {
         responseMessageText = "Sorry, I'm new at this :("
     }
@@ -134,6 +137,7 @@ function sendResponseMessageAPI(recipientId, responseMessageText, type) {
 
     if (type == 'message') json = generateResponseMessageData(recipientId, responseMessageText);
     else if (type == 'image') json = generateResponseImageData(recipientId);
+    else if (type == 'template') json = generateResponseTemplateData(recipientId);
 
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
@@ -187,6 +191,54 @@ function generateResponseImageData(recipientId) {
                 }
             }
         }
+    };
+}
+
+/**
+ * Function to create a message template
+ * @param recipientId
+ * @returns {{recipient: {id: *}, message: {attachment: {type: string, payload: {template_type: string, elements: *[]}}}}}
+ */
+function generateResponseTemplateData(recipientId) {
+    return {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: 'template',
+                payload: {
+                    template_type: 'generic',
+                    elements: [ elementTemplate() ]
+                }
+            }
+        }
+    };
+}
+
+/**
+ * Function to create a simple element for a message template
+ * @returns {{title: *, subtitle: *, item_url: *, image_url: *, buttons: *[]}}
+ */
+function elementTemplate() {
+    return {
+        title: process.env.TEMPLATE_TITLE,
+        subtitle: process.env.TEMPLATE_SUBTITLE,
+        item_url: process.env.TEMPLATE_ITEM,
+        image_url: process.env.TEMPLATE_IMAGE,
+        buttons: [ buttonTemplate() ]
+    };
+}
+
+/**
+ * Function to create a simple button for a element in message template
+ * @returns {{type: string, title: string, url: *}}
+ */
+function buttonTemplate() {
+    return {
+        type: 'web_url',
+        title: 'Visit',
+        url: process.env.TEMPLATE_ITEM
     };
 }
 
