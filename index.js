@@ -56,6 +56,11 @@ function getMessageData(event) {
     evluateMessage(senderId, messageText);
 }
 
+/**
+ * Function to evaluate the request message and prepare a response message
+ * @param recipientId
+ * @param message
+ */
 function evluateMessage(recipientId, message) {
     var responseMessageText = '';
     
@@ -68,6 +73,11 @@ function evluateMessage(recipientId, message) {
     sendResponseMessageAPI(recipientId, responseMessageText);
 }
 
+/**
+ * Function to send the response message
+ * @param recipientId
+ * @param responseMessageText
+ */
 function sendResponseMessageAPI(recipientId, responseMessageText) {
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
@@ -85,6 +95,12 @@ function sendResponseMessageAPI(recipientId, responseMessageText) {
     });
 }
 
+/**
+ * Function to generate the response message body
+ * @param recipientId
+ * @param responseMessageText
+ * @returns {{recipient: {id: *}, message: {text: *}}}
+ */
 function generateResponseMessageData(recipientId, responseMessageText) {
     return {
         recipient: {
