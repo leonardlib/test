@@ -63,29 +63,39 @@ function getMessageData(event) {
  */
 function evluateMessage(recipientId, message) {
     var responseMessageText = '';
+    var type = 'message';
     
     if (contains(message, 'help')) {
         responseMessageText = "Be patient, we're working on this ;)";
+    } else if (contains(message, 'image')) {
+        responseMessageText = '';
+        type = 'image';
     } else {
         responseMessageText = "Sorry, I'm new at this :("
     }
 
-    sendResponseMessageAPI(recipientId, responseMessageText);
+    sendResponseMessageAPI(recipientId, responseMessageText, type);
 }
 
 /**
  * Function to send the response message
  * @param recipientId
  * @param responseMessageText
+ * @param type
  */
-function sendResponseMessageAPI(recipientId, responseMessageText) {
+function sendResponseMessageAPI(recipientId, responseMessageText, type) {
+    var json = '';
+
+    if (type == 'message') json = generateResponseMessageData(recipientId, responseMessageText);
+    else if (type == 'image') json = generateResponseImageData(recipientId);
+
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
         qs: {
             access_token: process.env.APP_TOKEN
         },
         method: 'POST',
-        json: generateResponseMessageData(recipientId, responseMessageText)
+        json: json
     }, function (error, response, data) {
         if (error) {
             console.log("Message wasn't send");
@@ -108,6 +118,28 @@ function generateResponseMessageData(recipientId, responseMessageText) {
         },
         message: {
             text: responseMessageText
+        }
+    };
+}
+
+/**
+ * Function to generate the response image message body
+ * @param recipientId
+ * @returns {{recipient: {id: *}, message: {attachment: {type: string, payload: {url: string}}}}}
+ */
+function generateResponseImageData(recipientId) {
+    //Is better with an API to serve images
+    return {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: 'image',
+                payload: {
+                    url: 'http://i.imgur.com/SOFXhd6.jpg'
+                }
+            }
         }
     };
 }
