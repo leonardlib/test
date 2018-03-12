@@ -52,4 +52,56 @@ app.post('/webhook', function (req, res) {
 function getMessageData(event) {
     var senderId = event.sender.id;
     var messageText = event.message.text;
+
+    evluateMessage(senderId, messageText);
+}
+
+function evluateMessage(recipientId, message) {
+    var responseMessageText = '';
+    
+    if (contains(message, 'help')) {
+        responseMessageText = "Be patient, we're working on this ;)";
+    } else {
+        responseMessageText = "Sorry, I'm new at this :("
+    }
+
+    sendResponseMessageAPI(recipientId, responseMessageText);
+}
+
+function sendResponseMessageAPI(recipientId, responseMessageText) {
+    request({
+        uri: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: {
+            access_token: process.env.APP_TOKEN
+        },
+        method: 'POST',
+        json: generateResponseMessageData(recipientId, responseMessageText)
+    }, function (error, response, data) {
+        if (error) {
+            console.log("Message wasn't send");
+        } else {
+            console.log("Message was send");
+        }
+    });
+}
+
+function generateResponseMessageData(recipientId, responseMessageText) {
+    return {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: responseMessageText
+        }
+    };
+}
+
+/**
+ * Function to search a word inside a text
+ * @param text
+ * @param word
+ * @returns {boolean}
+ */
+function contains(text, word) {
+    return (text.indexOf(word) > -1);
 }
