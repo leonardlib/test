@@ -52,8 +52,52 @@ app.post('/webhook', function (req, res) {
 function getMessageData(event) {
     var senderId = event.sender.id;
     var messageText = event.message.text;
+    var attachments = event.message.attachments;
 
-    evluateMessage(senderId, messageText);
+    if (attachments) {
+        evaluateAttachments(senderId, attachments);
+    } else {
+        evluateMessage(senderId, messageText);
+    }
+}
+
+/**
+ * Function to evaluate the request attachments
+ * @param recipientId
+ * @param attachments
+ */
+function evaluateAttachments(recipientId, attachments) {
+    var responseMessageText = '';
+    var type = 'message';
+
+    if (attachments[0].payload.coordinates) {
+        var lat = attachments[0].payload.coordinates.lat;
+        var long = attachments[0].payload.coordinates.long;
+
+        getWeather(lat, long, function (temperature) {
+            responseMessageText = 'Today, the temperature are ' + temperature + 'ºC';
+            sendResponseMessageAPI(recipientId, responseMessageText, type);
+        });
+    }
+}
+
+/**
+ * Function to get the weather from a location
+ * @param lat
+ * @param long
+ * @param callback
+ */
+function getWeather(lat, long, callback) {
+    var url = 'http://api.geonames.org/findNearByWeatherJSON?lat='+ lat +'&lng='+ long +'&username=demo';
+
+    request(url, function (error, response, data) {
+        if (!error) {
+            var response = JSON.parse(data);
+            var temperature = response.weatherObservation.temperature;
+
+            callback(temperature);
+        }
+    });
 }
 
 /**
@@ -70,6 +114,8 @@ function evluateMessage(recipientId, message) {
     } else if (contains(message, 'image')) {
         responseMessageText = '';
         type = 'image';
+    } else if (contains(message, 'clima')) {
+        responseMessageText = 'Ok. Can you send me your location?, please :)'
     } else {
         responseMessageText = "Sorry, I'm new at this :("
     }
